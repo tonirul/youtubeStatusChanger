@@ -31,7 +31,7 @@ Built using the **YouTube Data API v3** with Google OAuth2 authentication.
 ├── requirements.txt # Python dependencies
 
 yaml
-Copy code
+ 
 
 ---
 
@@ -45,14 +45,14 @@ cd youtube-private-updater
 Create a virtual environment (recommended):
 
 bash
-Copy code
+ 
 python -m venv venv
 source venv/bin/activate   # Mac/Linux
 venv\Scripts\activate      # Windows
 Install dependencies:
 
 bash
-Copy code
+ 
 pip install -r requirements.txt
 🔑 Setup Google API Credentials
 Go to Google Cloud Console
@@ -71,7 +71,7 @@ Rename it to client_secret.json and place it in the project root
 
 ▶️ Run the App
 bash
-Copy code
+ 
 python app.py
 The app starts at: http://127.0.0.1:5000
 
@@ -105,13 +105,13 @@ By default, up to 200 videos per run are processed.
 You can change this in app.py:
 
 python
-Copy code
+ 
 DAILY_LIMIT = 200
 🧹 Resetting Login
 If you want to re-authenticate or use another YouTube account:
 
 bash
-Copy code
+ 
 rm token.pickle
 Restart the app, and you’ll be prompted to log in again.
 
