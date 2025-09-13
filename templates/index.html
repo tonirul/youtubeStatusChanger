@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube Updater</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0; padding: 0;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh; display: flex; justify-content: center; align-items: flex-start;
+            color: #fff;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 40px;
+            width: 90%;
+            max-width: 900px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        button {
+            display: block;
+            margin: 0 auto 20px auto;
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #ff512f, #dd2476);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+        #progressBar {
+            width: 100%; background-color: rgba(255,255,255,0.2);
+            border-radius: 10px; margin: 15px 0;
+        }
+        #progressFill {
+            height: 18px; width: 0%;
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+        #status, #counts {
+            text-align: center;
+            font-size: 16px;
+            margin: 5px 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%; margin-top: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px; overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background: rgba(255,255,255,0.08);
+        }
+        a {
+            color: #ffeb3b;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        a:hover {
+            color: #fff176;
+            text-decoration: underline;
+        }
+        .status-updated { color: #4caf50; font-weight: bold; }
+        .status-error { color: #f44336; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🎥 YouTube Video Privacy Updater</h2>
+
+        <button onclick="startProcess()">🚀 Start Updating</button>
+
+        <div id="status">Status: Waiting...</div>
+        <div id="counts">0 / 0 updated</div>
+
+        <div id="progressBar">
+            <div id="progressFill"></div>
+        </div>
+
+        <table id="detailsTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Video ID</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        function startProcess() {
+            fetch("/start", { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("status").innerText = "Status: " + data.message;
+                    pollProgress();
+                });
+        }
+
+        function pollProgress() {
+            fetch("/progress")
+                .then(response => response.json())
+                .then(data => {
+                    // Update status
+                    document.getElementById("status").innerText = "Status: " + data.status;
+                    document.getElementById("counts").innerText =
+                        data.updated + " / " + data.total + " updated";
+
+                    // Update progress bar
+                    let percent = data.total > 0 ? (data.updated / data.total) * 100 : 0;
+                    document.getElementById("progressFill").style.width = percent + "%";
+
+                    // Update table
+                    let tbody = document.querySelector("#detailsTable tbody");
+                    tbody.innerHTML = "";
+                    data.details.forEach((item, index) => {
+                        let row = `<tr>
+                            <td>${index + 1}</td>
+                            <td>${item.id}</td>
+                            <td><a href="https://www.youtube.com/watch?v=${item.id}" target="_blank">${item.title}</a></td>
+                            <td class="${item.status.includes('Error') ? 'status-error' : 'status-updated'}">
+                                ${item.status}
+                            </td>
+                        </tr>`;
+                        tbody.innerHTML += row;
+                    });
+
+                    // Keep polling until done
+                    if (data.status !== "Completed!" && data.status !== "No private videos found.") {
+                        setTimeout(pollProgress, 2000);
+                    }
+                });
+        }
+    </script>
+</body>
+</html>
